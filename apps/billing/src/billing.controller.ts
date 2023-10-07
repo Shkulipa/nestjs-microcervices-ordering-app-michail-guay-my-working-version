@@ -1,13 +1,19 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import { BillingService } from './billing.service';
 
 @Controller()
 export class BillingController {
-  constructor() {}
+  constructor(private readonly billingService: BillingService) {}
 
-  @MessagePattern('billingMessagePattern')
+  @MessagePattern('testMessagePatterBilling')
   getAnalytics(data: any) {
     console.log('BILLING MICROSERVICE', 'data', data);
     return '';
+  }
+
+  @EventPattern('order_created')
+  async handleOrderCreated(@Payload() data: any) {
+    this.billingService.bill(data);
   }
 }

@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
-import { RmqModule } from '@app/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { DatabaseModule } from '@app/common/database/database.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Order, OrderSchema } from './schemas/order.schemas';
+import { OrdersService } from './orders.service';
+import { OrdersRepository } from './orders.repository';
 
 @Module({
   imports: [
@@ -10,6 +14,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       isGlobal: true,
       envFilePath: './apps/orders/.env',
     }),
+    DatabaseModule,
+    MongooseModule.forFeature([
+      {
+        name: Order.name,
+        schema: OrderSchema,
+      },
+    ]),
     ClientsModule.registerAsync([
       {
         name: 'BILLING',
@@ -36,5 +47,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ]),
   ],
   controllers: [OrdersController],
+  providers: [OrdersService, OrdersRepository],
 })
 export class OrdersModule {}
