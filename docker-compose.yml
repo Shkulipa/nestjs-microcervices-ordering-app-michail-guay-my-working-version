@@ -1,0 +1,75 @@
+version: '3.1'
+
+services:
+  orders:
+    build:
+      context: .
+      dockerfile: ./apps/orders/Dockerfile
+      target: development
+    command: npm run start:dev orders
+    env_file:
+      - ./apps/orders/.env
+    depends_on:
+      - rabbitmq
+      - mongo
+      - billing
+      - auth
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3000:3000'
+  billing:
+    build:
+      context: .
+      dockerfile: ./apps/billing/Dockerfile
+      target: development
+    command:  sh -c "sleep 15 && npm run start:dev billing"
+    env_file:
+      - ./apps/billing/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+  auth:
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    command: npm run start:dev auth
+    ports:
+      - '3001:3001'
+    env_file:
+      - ./apps/auth/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+  rabbitmq:
+    image: rabbitmq:3.12-management # образ с включенным management плагином
+    ports:
+      - "5672:5672"
+      - "15672:15672" # проксирование порта для RabbitMQ Management
+
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+    - ../mongodb-data:/data/db
+    ports:
+      - '27018:27017'
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    volumes:
+      - ../mongodb-data:/data/db
+    depends_on:
+      - mongo
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
