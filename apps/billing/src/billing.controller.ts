@@ -9,7 +9,7 @@ export class BillingController {
   @MessagePattern('testMessagePatterBilling')
   getAnalytics(data: any) {
     console.log('BILLING MICROSERVICE', 'data', data);
-    return '';
+    return 'Billing works!';
   }
 
   @EventPattern('order_created')

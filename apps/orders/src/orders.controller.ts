@@ -16,6 +16,11 @@ export class OrdersController {
     return this.ordersService.createOrder(createOrderReq);
   }
 
+  @Post('/testMessagePatterAuth')
+  authMessagePattern() {
+    return this.authClient.send('testMessagePatterAuth', {});
+  }
+
   @Post('/testMessagePatterBilling')
   billingMessagePattern() {
     return this.billingClient.send('testMessagePatterBilling', {});
