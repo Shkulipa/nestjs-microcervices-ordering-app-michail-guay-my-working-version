@@ -1,25 +1,37 @@
 import { Module } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
+import { RmqModule } from '@app/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: './apps/orders/.env',
+    }),
+    ClientsModule.registerAsync([
       {
         name: 'BILLING',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://rabbitmq:5672'],
-          queue: 'billing_queue',
-        },
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBIT_MQ_URI')],
+            queue: configService.get<string>('RABBIT_MQ_BILLING_QUEUE'),
+          },
+        }),
+        inject: [ConfigService],
       },
       {
         name: 'AUTH',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://rabbitmq:5672'],
-          queue: 'auth_queue',
-        },
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBIT_MQ_URI')],
+            queue: configService.get<string>('RABBIT_MQ_AUTH_QUEUE'),
+          },
+        }),
+        inject: [ConfigService],
       },
     ]),
   ],
