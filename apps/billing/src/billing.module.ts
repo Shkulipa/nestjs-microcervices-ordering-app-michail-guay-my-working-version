@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { BillingController } from './billing.controller';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BillingService } from './billing.service';
-import { RmqModule } from '@app/common';
+import { AuthModule } from '@app/common';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -10,7 +11,20 @@ import { RmqModule } from '@app/common';
       isGlobal: true,
       envFilePath: './apps/billing/.env',
     }),
-    RmqModule,
+    ClientsModule.registerAsync([
+      {
+        name: 'AUTH',
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBIT_MQ_URI')],
+            queue: configService.get<string>('RABBIT_MQ_AUTH_QUEUE'),
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
+    AuthModule,
   ],
   controllers: [BillingController],
   providers: [BillingService],

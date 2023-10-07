@@ -10,10 +10,13 @@ export class OrdersService {
     @Inject('BILLING') private billingClient: ClientProxy,
   ) {}
 
-  async createOrder(createOrderReq: CreateOrderReqDto) {
+  async createOrder(createOrderReq: CreateOrderReqDto, authentication: string) {
     const order = await this.ordersRepository.create(createOrderReq);
 
-    const record = new RmqRecordBuilder(createOrderReq)
+    const record = new RmqRecordBuilder({
+      createOrderReq,
+      Authentication: authentication,
+    })
       .setOptions({
         headers: {
           ['x-version']: '1.0.0',
@@ -24,5 +27,9 @@ export class OrdersService {
       .build();
     this.billingClient.emit('order_created', record);
     return order;
+  }
+
+  async getOrders() {
+    return await this.ordersRepository.find({});
   }
 }

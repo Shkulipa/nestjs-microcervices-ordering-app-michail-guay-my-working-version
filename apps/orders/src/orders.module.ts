@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { DatabaseModule } from '@app/common/database/database.module';
+import { DatabaseModule, AuthModule } from '@app/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Order, OrderSchema } from './schemas/order.schemas';
 import { OrdersService } from './orders.service';
@@ -45,6 +45,7 @@ import { OrdersRepository } from './orders.repository';
         inject: [ConfigService],
       },
     ]),
+    AuthModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersRepository],
